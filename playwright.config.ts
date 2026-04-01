@@ -12,30 +12,19 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [['html', { outputFolder: 'playwright-report', open: 'never' }], ['list']],
   use: {
-    baseURL: process.env.BASE_URL || 'https://example.com',
+    baseURL: process.env.BASE_URL || 'https://app-eu1.hubspot.com',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
     actionTimeout: 30_000,
-    navigationTimeout: 30_000,
+    navigationTimeout: 60_000,
+    testIdAttribute: 'data-test-id',
   },
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
+    }
   ],
   outputDir: 'test-results',
 });
