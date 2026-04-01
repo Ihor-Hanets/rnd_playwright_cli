@@ -94,6 +94,26 @@ export class CreateDealModal extends BasePage {
     await this.createAndAddAnotherButton.click();
   }
 
+  async selectContact(name = ''): Promise<void> {
+    await this.contactSearchButton.click();
+    if (name) {
+      await this.iframeLocator.getByRole('combobox', { name: 'Search' }).fill(name);
+    }
+    const firstOption = this.iframeLocator.getByRole('listbox').getByRole('option').first();
+    await firstOption.waitFor({ state: 'visible' });
+    await firstOption.click();
+  }
+
+  async selectCompany(name = ''): Promise<void> {
+    await this.companySearchButton.click();
+    if (name) {
+      await this.iframeLocator.getByRole('combobox', { name: 'Search' }).fill(name);
+    }
+    const firstOption = this.iframeLocator.getByRole('listbox').getByRole('option').first();
+    await firstOption.waitFor({ state: 'visible' });
+    await firstOption.click();
+  }
+
   async cancel(): Promise<void> {
     await this.cancelButton.click();
   }

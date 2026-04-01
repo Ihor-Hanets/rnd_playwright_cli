@@ -198,14 +198,11 @@ test.describe('Create Deal', () => {
     createDealModal,
   }) => {
     const dealName = generateDealName('TC-07 Contact Assoc');
-    const iframe = createDealModal['iframeLocator'];
 
     await createDealModal.fillDealName(dealName);
 
-    // Click Contact Search and type a contact name
-    await createDealModal.contactSearchButton.click();
-    await iframe.getByRole('textbox').last().fill('Ihor');
-    await iframe.getByRole('option').first().click();
+    // Click Contact Search and select the first available contact
+    await createDealModal.selectContact();
 
     // Click Create
     await createDealModal.createButton.click();
@@ -221,14 +218,11 @@ test.describe('Create Deal', () => {
     createDealModal,
   }) => {
     const dealName = generateDealName('TC-08 Company Assoc');
-    const iframe = createDealModal['iframeLocator'];
 
     await createDealModal.fillDealName(dealName);
 
-    // Click Company Search and type a company name
-    await createDealModal.companySearchButton.click();
-    await iframe.getByRole('textbox').last().fill('my');
-    await iframe.getByRole('option').first().click();
+    // Click Company Search and select the first available company
+    await createDealModal.selectCompany();
 
     // Click Create
     await createDealModal.createButton.click();

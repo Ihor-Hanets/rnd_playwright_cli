@@ -51,7 +51,9 @@ export class DealsListPage extends BasePage {
   }
 
   async searchDeal(query: string): Promise<void> {
+    await this.searchInput.click();
     await this.searchInput.fill(query);
+    await this.searchInput.press('Enter');
   }
 
   async getDealRowByName(dealName: string): Promise<Locator> {

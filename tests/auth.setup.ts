@@ -78,7 +78,7 @@ setup('authenticate with HubSpot MFA', async ({ page }) => {
   const accountLink = page.getByRole('link', { name: 'myowncompany' });
   if (await accountLink.isVisible()) {
     await accountLink.click();
-    await page.waitForURL(`**/${ENV.portalId}/**`);
+    await page.waitForURL(`**/${ENV.portalId}**`);
   }
 
   await page.context().storageState({ path: AUTH_FILE });
