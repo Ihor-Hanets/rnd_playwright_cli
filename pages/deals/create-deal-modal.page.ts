@@ -18,6 +18,8 @@ export class CreateDealModal extends BasePage {
   readonly cancelButton: Locator;
   readonly closeButton: Locator;
   readonly heading: Locator;
+  readonly contactSearchButton: Locator;
+  readonly companySearchButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -36,6 +38,8 @@ export class CreateDealModal extends BasePage {
     this.cancelButton = this.iframeLocator.getByRole('button', { name: 'Cancel' });
     this.closeButton = page.frameLocator('[data-test-id="object-builder-ui-iframe"]').getByRole('button', { name: 'Close' });
     this.heading = page.frameLocator('[data-test-id="object-builder-ui-iframe"]').getByRole('heading', { name: 'Create Deal', level: 2 });
+    this.contactSearchButton = this.iframeLocator.getByRole('button', { name: 'Contact Search' });
+    this.companySearchButton = this.iframeLocator.getByRole('button', { name: 'Company Search' });
   }
 
   async open(): Promise<void> {

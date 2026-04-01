@@ -15,43 +15,52 @@ test.describe('Edit Deal', () => {
     dealUrl = page.url();
   });
 
-  test('should display deal detail page with correct initial stage', async ({ page }) => {
-    await page.goto(dealUrl);
-
-    await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
-    await expect(page.getByRole('button', { name: /Appointment Scheduled/ })).toBeVisible();
-  });
-
-  test('should allow editing the deal name inline from the detail page', async ({
+  // TC-09 — Edit deal name via the Edit button on detail page
+  test('should edit deal name via Edit button and reflect in list view', async ({
     page,
+    dealsListPage,
     dealDetailPage,
   }) => {
     await page.goto(dealUrl);
 
-    const newName = generateDealName('Renamed Deal');
+    const newName = generateDealName('TC-09 Renamed Deal');
 
+    // Click Edit button next to the deal name
     await dealDetailPage.editNameButton.click();
     const nameInput = page.getByRole('textbox', { name: 'Deal Name' });
     await nameInput.fill(newName);
     await nameInput.press('Enter');
 
+    // Deal detail page heading reflects the new name
     await expect(page.getByRole('heading', { level: 2 }).first()).toContainText(newName);
+
+    // Navigate back to list and verify name is updated
+    await dealsListPage.open();
+    await dealsListPage.searchDeal(newName);
+    await expect(page.getByRole('link', { name: newName }).first()).toBeVisible();
   });
 
-  test('should change the deal stage from the deal detail page', async ({
+  // TC-10 — Change deal stage from the detail page
+  test('should change deal stage to Qualified To Buy from the detail page', async ({
     page,
     dealDetailPage,
   }) => {
     await page.goto(dealUrl);
 
+    // Locate the Deal Stage button showing Appointment Scheduled
+    await expect(page.getByRole('button', { name: /Appointment Scheduled/ })).toBeVisible();
+
+    // Click to open the stage dropdown and select Qualified To Buy
     await dealDetailPage.changeDealStage(DEAL_STAGES.QUALIFIED_TO_BUY);
 
+    // Deal Stage button updates to Qualified To Buy
     await expect(
       page.getByRole('button', { name: DEAL_STAGES.QUALIFIED_TO_BUY }),
     ).toBeVisible();
   });
 
-  test('should change the deal stage to Closed Won from the detail page', async ({
+  // TC-11 — Change deal stage to Closed Won
+  test('should change deal stage to Closed Won', async ({
     page,
     dealDetailPage,
   }) => {
@@ -64,7 +73,8 @@ test.describe('Edit Deal', () => {
     ).toBeVisible();
   });
 
-  test('should change the deal stage to Closed Lost from the detail page', async ({
+  // TC-12 — Change deal stage to Closed Lost
+  test('should change deal stage to Closed Lost', async ({
     page,
     dealDetailPage,
   }) => {
@@ -77,44 +87,98 @@ test.describe('Edit Deal', () => {
     ).toBeVisible();
   });
 
-  test('should update close date from deal detail page header', async ({ page }) => {
-    await page.goto(dealUrl);
-
-    // Close date field in the header is an editable textbox
-    const closeDateField = page.getByRole('textbox', { name: '--' }).first();
-    await closeDateField.fill('06/30/2026');
-    await closeDateField.press('Enter');
-
-    // Wait for save confirmation toast
-    await expect(page.getByText('"Close Date" changes saved').first()).toBeVisible();
-  });
-
-  test('should change deal stage inline from the deals list', async ({
+  // TC-13 — Edit deal amount inline (from list view)
+  test('should edit deal amount inline from the list view', async ({
     page,
     dealsListPage,
+    createDealModal,
   }) => {
+    // Create a deal to edit
     await dealsListPage.open();
+    await dealsListPage.openCreateDealModal();
+    const dealName = generateDealName('TC-13 Amount Edit');
+    await createDealModal.create({ name: dealName });
+    await page.waitForURL(/\/record\/0-3\//);
 
-    const stageCell = page
-      .getByRole('row', { name: /Edit Test Setup/ })
-      .last()
-      .getByRole('button', { name: DEAL_STAGES.APPOINTMENT_SCHEDULED });
+    await dealsListPage.open();
+    await dealsListPage.searchDeal(dealName);
 
-    await stageCell.click();
+    // Click the Amount cell (shows --)
+    const row = page.getByRole('row', { name: new RegExp(dealName) }).first();
+    const amountCell = row.getByRole('button', { name: '--' }).first();
+    await amountCell.click();
 
-    const stageOption = page.getByRole('option', { name: DEAL_STAGES.QUALIFIED_TO_BUY }).first();
-    await expect(stageOption).toBeVisible();
-    await stageOption.click();
+    // Enter value 5000 and confirm
+    const amountInput = page.getByRole('spinbutton').or(page.getByRole('textbox', { name: /amount/i })).first();
+    await amountInput.fill('5000');
+    await amountInput.press('Enter');
+
+    // Amount cell in the list updates
+    await expect(row.getByText('5,000')).toBeVisible();
+
+    // On deal detail page, Amount reflects 5,000
+    await dealsListPage.clickDeal(dealName);
+    await page.waitForURL(/\/record\/0-3\//);
+    await expect(page.getByText('5,000')).toBeVisible();
   });
 
-  test('should display About this deal section with properties on detail page', async ({
+  // TC-14 — Edit deal close date inline (from list view)
+  test('should edit deal close date inline from the list view', async ({
     page,
+    dealsListPage,
+    createDealModal,
   }) => {
-    await page.goto(dealUrl);
+    await dealsListPage.open();
+    await dealsListPage.openCreateDealModal();
+    const dealName = generateDealName('TC-14 Close Date Edit');
+    await createDealModal.create({ name: dealName });
+    await page.waitForURL(/\/record\/0-3\//);
 
-    await expect(page.getByRole('button', { name: 'About this deal' })).toBeVisible();
-    await expect(page.getByText('Deal Type')).toBeVisible();
-    await expect(page.getByText('Priority')).toBeVisible();
-    await expect(page.getByText('Deal owner')).toBeVisible();
+    await dealsListPage.open();
+    await dealsListPage.searchDeal(dealName);
+
+    // Click the Close Date cell
+    const row = page.getByRole('row', { name: new RegExp(dealName) }).first();
+
+    // Close Date column shows "--" for a deal with no close date
+    const closeDateCell = row.getByRole('button').filter({ hasText: /^--|^\d{1,2}\/\d{1,2}\/\d{4}|^[A-Z][a-z]{2}/ }).first();
+    await closeDateCell.click();
+
+    // Enter a future date and confirm
+    const dateInput = page.getByPlaceholder('MM/DD/YYYY').first();
+    await dateInput.fill('12/31/2026');
+    await dateInput.press('Enter');
+
+    // Close Date cell updates
+    await expect(page.getByText('Dec 31, 2026').first()).toBeVisible();
+  });
+
+  // TC-15 — Edit deal stage inline (from list view)
+  test('should edit deal stage inline from the list view', async ({
+    page,
+    dealsListPage,
+    createDealModal,
+  }) => {
+    await dealsListPage.open();
+    await dealsListPage.openCreateDealModal();
+    const dealName = generateDealName('TC-15 Stage Inline Edit');
+    await createDealModal.create({ name: dealName });
+    await page.waitForURL(/\/record\/0-3\//);
+
+    await dealsListPage.open();
+    await dealsListPage.searchDeal(dealName);
+
+    // Click the Deal Stage cell for the test deal
+    const row = page.getByRole('row', { name: new RegExp(dealName) }).first();
+    const stageButton = row.getByRole('button', { name: new RegExp(DEAL_STAGES.APPOINTMENT_SCHEDULED) });
+    await stageButton.click();
+
+    // Select a different stage from the dropdown
+    const stageOption = page.getByRole('option', { name: DEAL_STAGES.PRESENTATION_SCHEDULED }).first();
+    await expect(stageOption).toBeVisible();
+    await stageOption.click();
+
+    // Deal Stage cell updates immediately
+    await expect(row.getByRole('button', { name: new RegExp(DEAL_STAGES.PRESENTATION_SCHEDULED) })).toBeVisible();
   });
 });

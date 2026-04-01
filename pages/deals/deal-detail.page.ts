@@ -21,6 +21,8 @@ export class DealDetailPage extends BasePage {
   readonly associatedContactsSection: Locator;
   readonly associatedCompaniesSection: Locator;
   readonly aboutThisDealSection: Locator;
+  readonly addContactButton: Locator;
+  readonly addCompanyButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -45,6 +47,8 @@ export class DealDetailPage extends BasePage {
     this.associatedContactsSection = page.getByRole('button', { name: /Contacts \(/ });
     this.associatedCompaniesSection = page.getByRole('button', { name: /Companies \(/ });
     this.aboutThisDealSection = page.getByRole('button', { name: 'About this deal' });
+    this.addContactButton = page.getByRole('button', { name: 'Contacts (0)' }).locator('..').locator('..').getByRole('button', { name: 'Add' }).first();
+    this.addCompanyButton = page.getByRole('button', { name: 'Companies (0)' }).locator('..').locator('..').getByRole('button', { name: 'Add' }).first();
   }
 
   async open(): Promise<void> {
