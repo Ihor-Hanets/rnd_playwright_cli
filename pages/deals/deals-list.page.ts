@@ -30,7 +30,7 @@ export class DealsListPage extends BasePage {
     this.dealNameColumnHeader = page.getByRole('columnheader', { name: /Deal Name/ });
     this.helpTooltipCloseButton = page.getByTestId('help-tooltip-close-button');
     this.allDealsTab = page.getByRole('button', { name: /All deals/ }).first();
-    this.myDealsTab = page.getByRole('button', { name: 'My deals' });
+    this.myDealsTab = page.getByRole('button', { name: 'My deals' }).first();
   }
 
   async open(): Promise<void> {
@@ -79,7 +79,8 @@ export class DealsListPage extends BasePage {
 
   async selectDealByName(dealName: string): Promise<void> {
     const row = await this.getDealRowByName(dealName);
-    await row.getByRole('checkbox').click();
+    await row.hover();
+    await row.getByRole('cell', { name: 'Select row' }).click();
   }
 
   async switchToBoardView(): Promise<void> {

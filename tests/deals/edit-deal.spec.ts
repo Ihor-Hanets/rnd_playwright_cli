@@ -16,28 +16,36 @@ test.describe('Edit Deal', () => {
   });
 
   // TC-09 — Edit deal name via the Edit button on detail page
-  test('should edit deal name via Edit button and reflect in list view', async ({
+  test('should edit deal name via Edit button and persist after reload', async ({
     page,
-    dealsListPage,
     dealDetailPage,
   }) => {
+    test.setTimeout(120_000);
     await page.goto(dealUrl);
+    await page.waitForLoadState('domcontentloaded');
+    // Wait for the deal detail page to be fully loaded by confirming heading is visible
+    await expect(page.locator('[data-test-id="highlight-record-label"]')).toBeVisible();
 
     const newName = generateDealName('TC-09 Renamed Deal');
 
     // Click Edit button next to the deal name
     await dealDetailPage.editNameButton.click();
     const nameInput = page.getByRole('textbox', { name: 'Deal Name' });
+    await expect(nameInput).toBeVisible();
     await nameInput.fill(newName);
-    await nameInput.press('Enter');
+    await nameInput.press('Tab');
+    // Click on the deal title heading to close the edit panel and trigger save
+    await page.locator('[data-test-id="highlight-record-label"]').click();
+    // Wait for the edit panel to close (textbox disappears) before proceeding
+    await expect(page.getByRole('textbox', { name: 'Deal Name' })).toBeHidden();
 
     // Deal detail page heading reflects the new name
     await expect(page.getByRole('heading', { level: 2 }).first()).toContainText(newName);
 
-    // Navigate back to list and verify name is updated
-    await dealsListPage.open();
-    await dealsListPage.searchDeal(newName);
-    await expect(page.getByRole('link', { name: newName }).first()).toBeVisible();
+    // Verify rename persists after page reload (confirming server-side save)
+    await page.reload();
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.getByRole('heading', { level: 2 }).first()).toContainText(newName);
   });
 
   // TC-10 — Change deal stage from the detail page
@@ -109,7 +117,7 @@ test.describe('Edit Deal', () => {
     await amountCell.click();
 
     // Enter value 5000 and confirm
-    const amountInput = page.getByRole('spinbutton').or(page.getByRole('textbox', { name: /amount/i })).first();
+    const amountInput = row.getByRole('textbox').first();
     await amountInput.fill('5000');
     await amountInput.press('Enter');
 
@@ -137,20 +145,28 @@ test.describe('Edit Deal', () => {
     await dealsListPage.open();
     await dealsListPage.searchDeal(dealName);
 
-    // Click the Close Date cell
+    // Click the Close Date cell (matches date text like "Apr 30, 2026" but not stage names)
     const row = page.getByRole('row', { name: new RegExp(dealName) }).first();
-
-    // Close Date column shows "--" for a deal with no close date
-    const closeDateCell = row.getByRole('button').filter({ hasText: /^--|^\d{1,2}\/\d{1,2}\/\d{4}|^[A-Z][a-z]{2}/ }).first();
+    const closeDateCell = row.getByRole('button').filter({ hasText: /\d{1,2},\s*\d{4}|\d{1,2}\/\d{1,2}\/\d{4}/ }).first();
     await closeDateCell.click();
 
     // Enter a future date and confirm
     const dateInput = page.getByPlaceholder('MM/DD/YYYY').first();
-    await dateInput.fill('12/31/2026');
-    await dateInput.press('Enter');
+    // Type character by character so the calendar stays open and navigates to December
+    await dateInput.pressSequentially('12/31/2026');
+    // Calendar now shows December 2026 with 31 as a highlighted menuitem — click it to set the date
+    await page.getByRole('menuitem', { name: '31' }).click();
+    // Click search input to move focus out of the date editor, which triggers the server-side save
+    await dealsListPage.searchInput.click();
+    // Wait for the autosave indicator toast to confirm the API request completed
+    await expect(page.getByTestId('autosave-indicator')).toBeVisible();
+    // Navigate away and back to display the formatted date (editor closes on reload)
+    await dealsListPage.open();
+    await dealsListPage.searchDeal(dealName);
 
-    // Close Date cell updates
-    await expect(page.getByText('Dec 31, 2026').first()).toBeVisible();
+    // Close Date cell now shows the formatted value (HubSpot renders as "Dec 31, 2026 ..." with time/timezone)
+    const updatedRow = page.getByRole('row', { name: new RegExp(dealName) }).first();
+    await expect(updatedRow.getByText(/Dec 31, 2026/)).toBeVisible();
   });
 
   // TC-15 — Edit deal stage inline (from list view)

@@ -73,7 +73,10 @@ export class DealDetailPage extends BasePage {
     await this.editNameButton.click();
     const nameInput = this.page.getByRole('textbox', { name: 'Deal Name' });
     await nameInput.fill(newName);
-    await nameInput.press('Enter');
+    await nameInput.press('Tab');
+    // Click on the deal title heading to close the edit panel and trigger save
+    await this.page.locator('[data-test-id="highlight-record-label"]').click();
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async changeDealStage(stage: string): Promise<void> {

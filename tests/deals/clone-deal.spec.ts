@@ -32,15 +32,17 @@ test.describe('Clone Deal', () => {
     const clonedDealUrl = page.url();
     expect(clonedDealUrl).not.toContain(originalName.replace(/ /g, ''));
 
-    // The cloned deal page should show a name (often "Copy of <original>" or same name)
+    // The cloned deal page should show a name (HubSpot may or may not add "Copy of" prefix)
     const clonedDealHeading = page.getByRole('heading', { level: 2 }).first();
     await expect(clonedDealHeading).toBeVisible();
     await expect(clonedDealHeading).not.toBeEmpty();
+    const clonedName = (await clonedDealHeading.textContent())?.trim() ?? '';
+    expect(clonedName.length).toBeGreaterThan(0);
 
-    // The cloned deal appears in the Deals list — search by "Copy of" prefix pattern
+    // The cloned deal appears in the Deals list — search by the actual cloned name
     await dealsListPage.open();
-    await dealsListPage.searchDeal('Copy of');
-    await expect(page.getByRole('link', { name: /Copy of/ }).first()).toBeVisible();
+    await dealsListPage.searchDeal(clonedName);
+    await expect(page.getByRole('link', { name: new RegExp(clonedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) }).first()).toBeVisible();
 
     // The original deal is untouched
     await dealsListPage.open();

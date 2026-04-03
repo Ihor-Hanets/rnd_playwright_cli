@@ -64,6 +64,9 @@ test.describe('Deals Board View', () => {
 
     await dealsBoardPage.open();
 
+    // Search for the deal to make the card visible
+    await dealsBoardPage.searchDeals(dealName);
+
     // Locate the test deal card in the relevant column
     const dealCard = await dealsBoardPage.getDealCardByName(dealName);
     await expect(dealCard).toBeVisible();
@@ -96,6 +99,9 @@ test.describe('Deals Board View', () => {
     // Navigate back to board view
     await dealsBoardPage.open();
 
+    // Search for the deal to make the card visible
+    await dealsBoardPage.searchDeals(dealName);
+
     // A new deal card appears in the Qualified To Buy column
     const dealCard = await dealsBoardPage.getDealCardByName(dealName);
     await expect(dealCard).toBeVisible();
@@ -116,6 +122,9 @@ test.describe('Deals Board View', () => {
     await page.waitForURL(/\/record\/0-3\//);
 
     await dealsBoardPage.open();
+
+    // Search for the deal to make the card visible
+    await dealsBoardPage.searchDeals(dealName);
 
     // Locate the deal card and click the deal name link
     const dealCard = await dealsBoardPage.getDealCardByName(dealName);

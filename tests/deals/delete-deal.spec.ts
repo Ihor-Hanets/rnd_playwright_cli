@@ -52,8 +52,8 @@ test.describe('Delete Deal', () => {
 
     // Select the checkbox for the single test deal row
     const row = page.getByRole('row', { name: new RegExp(dealName) }).first();
-    const checkbox = row.getByRole('checkbox');
-    await checkbox.check();
+    await row.hover();
+    await row.getByRole('cell', { name: 'Select row' }).click();
 
     // Verify the bulk action toolbar appears with "1 deal selected"
     await expect(page.getByText('1 deal selected')).toBeVisible();
@@ -61,10 +61,14 @@ test.describe('Delete Deal', () => {
     // Click Delete in the bulk action toolbar
     await page.getByRole('button', { name: 'Delete' }).last().click();
 
-    // Confirm the deletion
-    const confirmButton = page.getByRole('dialog').getByRole('button', { name: 'Delete' });
-    await expect(confirmButton).toBeVisible();
-    await confirmButton.click();
+    // Confirm the deletion — dialog may require typing the record count
+    const singleConfirmDialog = page.getByRole('dialog').filter({ hasText: /Delete/ }).last();
+    await expect(singleConfirmDialog).toBeVisible();
+    // Fill count input if present (bulk delete requires typing the number)
+    await singleConfirmDialog.getByRole('textbox').fill('1').catch(() => null);
+    const singleConfirmButton = singleConfirmDialog.getByRole('button', { name: 'Delete' });
+    await expect(singleConfirmButton).toBeEnabled();
+    await singleConfirmButton.click();
 
     // The deal is removed from the list
     await dealsListPage.open();
@@ -101,8 +105,10 @@ test.describe('Delete Deal', () => {
     const firstRow = rows.nth(0);
     const secondRow = rows.nth(1);
 
-    await firstRow.getByRole('checkbox').check();
-    await secondRow.getByRole('checkbox').check();
+    await firstRow.hover();
+    await firstRow.getByRole('cell', { name: 'Select row' }).click();
+    await secondRow.hover();
+    await secondRow.getByRole('cell', { name: 'Select row' }).click();
 
     // Verify bulk action toolbar shows "2 deals selected"
     await expect(page.getByText('2 deals selected')).toBeVisible();
@@ -110,10 +116,13 @@ test.describe('Delete Deal', () => {
     // Click Delete in the bulk action toolbar
     await page.getByRole('button', { name: 'Delete' }).last().click();
 
-    // Confirm the deletion
-    const confirmButton = page.getByRole('dialog').getByRole('button', { name: 'Delete' });
-    await expect(confirmButton).toBeVisible();
-    await confirmButton.click();
+    // Confirm the deletion — bulk delete dialog requires typing the record count to enable the button
+    const bulkConfirmDialog = page.getByRole('dialog').filter({ hasText: /Delete/ }).last();
+    await expect(bulkConfirmDialog).toBeVisible();
+    await bulkConfirmDialog.getByRole('textbox').fill('2').catch(() => null);
+    const bulkConfirmButton = bulkConfirmDialog.getByRole('button', { name: 'Delete' });
+    await expect(bulkConfirmButton).toBeEnabled();
+    await bulkConfirmButton.click();
 
     // Both deals are removed from the list
     await dealsListPage.open();

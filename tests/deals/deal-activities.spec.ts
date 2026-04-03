@@ -26,9 +26,10 @@ test.describe('Deal Detail Page — Activities', () => {
     // Click Create a note in the activity actions bar
     await dealDetailPage.createNoteButton.click();
 
-    // Enter note text in the contenteditable area
-    const noteInput = page.getByRole('generic', { name: 'Create a Note' });
-    await noteInput.click();
+    // Enter note text in the contenteditable area (auto-focused after clicking Note button)
+    const noteEditor = page.locator('[contenteditable="true"]').last();
+    await noteEditor.waitFor();
+    await noteEditor.click();
     await page.keyboard.type(noteText);
 
     // Save/submit the note
@@ -51,18 +52,11 @@ test.describe('Deal Detail Page — Activities', () => {
     await dealDetailPage.createTaskButton.click();
 
     // Enter a task title
-    const taskTitleInput = page.getByRole('textbox', { name: /Task title|Title/i }).first()
-      .or(page.getByPlaceholder(/task title|type a title/i).first());
+    const taskTitleInput = page.getByRole('textbox', { name: 'Enter your task' });
     await taskTitleInput.fill(taskTitle);
 
-    // Set a due date
-    const dateInput = page.getByRole('textbox', { name: /Due date/i }).first()
-      .or(page.getByLabel(/Due date/i).first());
-    await dateInput.fill('12/31/2026');
-
-    // Save the task
-    const saveButton = page.getByRole('button', { name: /Save|Create task/i }).last();
-    await saveButton.click();
+    // Save the task (activity date defaults to 3 business days)
+    await page.getByRole('button', { name: 'Create', exact: true }).click();
 
     // The task appears in the activity timeline
     await expect(page.getByText(taskTitle)).toBeVisible();
@@ -78,8 +72,9 @@ test.describe('Deal Detail Page — Activities', () => {
     // First create a note so there's content to filter
     const noteText = `Filter Note ${Date.now()}`;
     await dealDetailPage.createNoteButton.click();
-    const noteInput = page.getByRole('generic', { name: 'Create a Note' });
-    await noteInput.click();
+    const noteEditor = page.locator('[contenteditable="true"]').last();
+    await noteEditor.waitFor();
+    await noteEditor.click();
     await page.keyboard.type(noteText);
     await page.getByRole('button', { name: 'Create note' }).click();
     await expect(page.getByText(noteText)).toBeVisible();

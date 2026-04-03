@@ -6,12 +6,14 @@ export class DealsBoardPage extends BasePage {
   readonly boardContainer: Locator;
   readonly addDealsButton: Locator;
   readonly helpTooltipCloseButton: Locator;
+  readonly searchInput: Locator;
 
   constructor(page: Page) {
     super(page);
     this.boardContainer = page.getByText('You are currently on the board view');
     this.addDealsButton = page.getByTestId('create-object-dropdown');
     this.helpTooltipCloseButton = page.getByTestId('help-tooltip-close-button');
+    this.searchInput = page.getByRole('searchbox', { name: 'Search', exact: true });
   }
 
   async open(): Promise<void> {
@@ -47,6 +49,11 @@ export class DealsBoardPage extends BasePage {
       'Closed Lost',
     ];
     return stages;
+  }
+
+  async searchDeals(dealName: string): Promise<void> {
+    await this.searchInput.clear();
+    await this.searchInput.fill(dealName);
   }
 
   async getDealCardByName(dealName: string): Promise<Locator> {

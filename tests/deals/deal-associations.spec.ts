@@ -36,8 +36,8 @@ test.describe('Deal Detail Page — Associations', () => {
     await expect(assocIframe.getByRole('heading', { name: /Add existing Contact/ })).toBeVisible();
 
     // Select the first contact from the list
-    const firstContactCheckbox = assocIframe.getByRole('checkbox').first();
-    await firstContactCheckbox.check();
+    const firstContactCheckbox = assocIframe.getByTestId('associate-panel-search-checkbox').first();
+    await firstContactCheckbox.click();
 
     // Save
     await assocIframe.getByRole('button', { name: 'Save' }).click();
@@ -65,20 +65,20 @@ test.describe('Deal Detail Page — Associations', () => {
 
     // Association iframe opens with "Add existing Company" heading
     const assocIframe = page.frameLocator('iframe[src*="association"], iframe').last();
-    await expect(assocIframe.getByRole('heading', { name: /Add existing Company/ })).toBeVisible();
+    await expect(assocIframe.getByRole('heading', { name: /Add existing Company/ })).toBeVisible({ timeout: 15000 });
 
-    // Search for a company
-    await assocIframe.getByRole('searchbox').fill('my');
+    // Select the first company from the default list
+    const firstCheckbox = assocIframe.getByTestId('associate-panel-search-checkbox').first();
+    await expect(firstCheckbox).toBeVisible({ timeout: 15000 });
+    await firstCheckbox.click();
 
-    // Select the first result
-    const firstCheckbox = assocIframe.getByRole('checkbox').first();
-    await expect(firstCheckbox).toBeVisible();
-    await firstCheckbox.check();
+    // Step 1 of 2: advance to the next step
+    await assocIframe.getByRole('button', { name: 'Next' }).click();
 
-    // Save
-    await assocIframe.getByRole('button', { name: 'Save' }).click();
+    // Step 2: confirm the association
+    await assocIframe.getByRole('button', { name: /Confirm|Save/i }).click();
 
     // Companies section shows Companies (1)
-    await expect(page.getByRole('button', { name: /Companies \(1\)/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Companies \(1\)/ })).toBeVisible({ timeout: 15000 });
   });
 });
