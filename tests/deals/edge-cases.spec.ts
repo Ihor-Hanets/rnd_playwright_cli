@@ -65,12 +65,13 @@ test.describe('Edge Cases', () => {
 
     // Type alphabetical text in the Amount field
     await createDealModal.amountInput.fill('abc');
-
+    await createDealModal.amountInput.blur();
+    await expect(createDealModal.amountInput).not.toHaveValue('abc');
     // HubSpot Amount field is a text input that does not immediately reject non-numeric values
     // in the UI; validation occurs server-side on form submission. The field accepts 'abc' as input.
     // test.fixme: HubSpot does not client-side reject non-numeric input in the Amount field.
     // Actual behavior: field keeps 'abc' value; no inline validation error shown.
-    await expect(createDealModal.amountInput).toBeVisible();
+    // await expect(createDealModal.amountInput).toBeVisible();
   });
 
   // TC-49 — Amount field with decimal value
